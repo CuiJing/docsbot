@@ -1,6 +1,6 @@
 # DocsBot 使用说明
 
-DocsBot 是一个命令行工具，提供了方便的方式来管理和查询你的资料库。
+DocsBot 是一个简单的命令行工具，用对话的方式，快速查询本地的文档库（Word、PDF、PPT等）
 
 ## 快速开始 Quick Start
 
