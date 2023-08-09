@@ -1,7 +1,10 @@
 chromadb==0.4.5
 prettytable
-langchain
+langchain>=0.0.253
 qdrant-client
-unstructured_inference
+unstructured
 pytesseract
 openai
+python-docx
+nltk
+tiktoken

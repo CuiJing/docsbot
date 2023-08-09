@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name='docsbot',
-    version='0.1.7',
+    version='0.1.12',
     description='A simple chat bot for querying information from your local private documents.',
     url='https://github.com/CuiJing/docsbot',
     author='Jeff',
@@ -15,16 +15,24 @@ setup(
     long_description_content_type="text/markdown",
     entry_points={
         'console_scripts': [
-            'docsbot = cli:main',
+            'docsbot = docsbot.cli:main',
         ]
     },
     install_requires=[
         "chromadb==0.4.5",
         "prettytable",
-        "langchain",
+        "langchain>=0.0.253",
         "qdrant-client",
-        "unstructured_inference",
+        "unstructured",
         "pytesseract",
         "openai",
+        "python-docx",
+        "nltk",
+        "tiktoken",
     ]
 )
+
+
+
+
+
