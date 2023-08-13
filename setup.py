@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name='docsbot',
-    version='0.1.12',
+    version='0.1.13',
     description='A simple chat bot for querying information from your local private documents.',
     url='https://github.com/CuiJing/docsbot',
     author='Jeff',

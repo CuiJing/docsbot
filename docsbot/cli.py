@@ -20,7 +20,6 @@ elif hasattr(CONFIG.env, "OPENAI_PROXY"):
     nltk.set_proxy(CONFIG.env.OPENAI_PROXY)
 
 
-
 class ChatBase:
     def __init__(self):
         self.bases_file = CONFIG.bases_file
@@ -50,7 +49,7 @@ class ChatBase:
             # created is the time the base was created
             self.base[base_id]['created'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.save_base()
-            print(f"Added {path} to base {base_id},  {len(docs)} document(s)!")
+            print(f"Successfully added {len(docs)} document(s) in '{path}' to '{base_id}'!")
         else:
             print("Invalid directory")
 
@@ -72,16 +71,15 @@ class ChatBase:
                 base.delete()
                 del self.base[base_id]
                 self.save_base()
-                print(f"Deleted base with ID {base_id}")
+                print(f"Successfully deleted '{base_id}'")
             else:
                 print(f"Invalid base ID {base_id}")
 
 
     def _pretty_print_query_result(self, data):
-        print(f"查询: {data['query']}")
         if data['source_documents']:
-            print(f"结果: {data['result']}")
-            print("来源文件：")
+            print(f"【答】：{data['answer']}")
+            print("【来源】：")
         else:
             print("没有找到相关文件")
             return
@@ -89,7 +87,10 @@ class ChatBase:
         source_dict = {}
         for doc in data['source_documents']:
             content = doc.page_content.replace('\n', ' ')
-            source = doc.metadata['source']
+            if not doc.metadata:
+                source = "Unknown"
+            else:
+                source = doc.metadata['source']
             if source in source_dict:
                 source_dict[source].append(content)
             else:
@@ -97,27 +98,31 @@ class ChatBase:
 
         # 打印整理后的文档内容
         for i, (source, contents) in enumerate(source_dict.items()):
-            print(f"{i + 1}. 来源：{source}")
+            print(f"{i + 1}. 文件：{source}")
             for j, content in enumerate(contents, start=1):
-                print(f"   内容{j}.：{content}")
+                print(f"   内容{j}. {content}")
 
 
-    def query(self, base_id, question):
-        if base_id in self.base:
-            # Here you can implement the actual querying process
-            base = Base(base_id, self.base[base_id]['vector_store_type'])
-            self._pretty_print_query_result(base.query(question))
-            print(f"Queried base with ID {base_id} with query {question}")
-        else:
-            print("Invalid base ID")
-
-
-    def test(self):
+    def check(self):
         from qdrant_client import QdrantClient
         client = QdrantClient(url='http://127.0.0.1:6333')
         print(client.get_collections())
         print(os.environ)
 
+    def query(self, base_id, thread_id=None, debug=False):
+        if debug:
+            import langchain
+            langchain.debug = True
+        if base_id not in self.base:
+            print("Invalid base ID")
+            return
+        base = Base(base_id, self.base[base_id]['vector_store_type'])
+        # 根据用户的交互式输入，调用多次query方法
+        while True:
+            question = input("请输入您的问题：")
+            if question == 'exit':
+                break
+            self._pretty_print_query_result(base.query(question))
 
 def main():
     chat_base = ChatBase()
@@ -133,13 +138,17 @@ def main():
     parser_deletebase = subparsers.add_parser('deletebase')
     parser_deletebase.add_argument('base_ids', nargs='+')
 
+    # parser_query = subparsers.add_parser('query')
+    # parser_query.add_argument('base_id', type=str)
+    # parser_query.add_argument('query', type=str)
+
+    parser_showconfig = subparsers.add_parser('showconfig')
+
     parser_query = subparsers.add_parser('query')
     parser_query.add_argument('base_id', type=str)
-    parser_query.add_argument('query', type=str)
+    parser_query.add_argument('--debug', action='store_true')
+    parser_query.add_argument('--thread_id', type=str)
 
-    parser_query = subparsers.add_parser('showconfig')
-
-    parser_query = subparsers.add_parser('test')
 
     args = parser.parse_args()
 
@@ -149,12 +158,13 @@ def main():
         chat_base.listbase()
     elif args.command == 'deletebase':
         chat_base.deletebase(args.base_ids)
-    elif args.command == 'query':
-        chat_base.query(args.base_id, args.query)
     elif args.command == 'showconfig':
         CONFIG.print()
-    elif args.command == 'test':
-        chat_base.test()
+    elif args.command == 'query':
+        chat_base.query(args.base_id,
+                        thread_id=args.thread_id,
+                        debug=args.debug
+                        )
     else:
         parser.print_help()
 

@@ -7,7 +7,9 @@ from langchain.document_loaders import DirectoryLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Qdrant, Chroma
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.chains import RetrievalQA
+from langchain.chains import ConversationalRetrievalChain
+from langchain.memory import ConversationBufferMemory
+
 from langchain import OpenAI
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -105,22 +107,34 @@ class Base:
 
         print(f"Using vector store:  {self.base_db} ")
         retriever = VectorStoreRetriever(vectorstore=self.base_db.vector_store,
-                                         llm=OpenAI(temperature=0, max_tokens=300)
+                                         llm=OpenAI(temperature=0, max_tokens=300),
+                                         search_kwargs=dict(k=2)  # TOP 2 results
                                          )
-        self.qa = RetrievalQA.from_llm(llm=OpenAI(temperature=0, max_tokens=300),
-                                       retriever=retriever,
-                                       return_source_documents=True
-                                       )
+        memory_key = f"chat_history_{base_id}"
+        memory_key = "chat_history"
+        self.memory = ConversationBufferMemory(memory_key=memory_key,
+                                          return_messages=True,
+                                          input_key="question",
+                                          output_key="answer",
+                                          )
 
-    # def _get_subdirectories(self, directory):
-    #     subdirectories = [directory]
-    #     for dirpath, dirnames, filenames in os.walk(directory):
-    #         subdirectories.extend([os.path.join(dirpath, dir) for dir in dirnames])
-    #     return subdirectories
+        # self.qa = RetrievalQA.from_llm(llm=OpenAI(temperature=0, max_tokens=300),
+        #                                retriever=retriever,
+        #                                return_source_documents=True,
+        #                                memory=self.memory
+        #                                )
+
+
+        # 使用 ConversationalRetrievalChain 可以合并历史对话
+        # combine_docs_chain 和 question_generator 使用默认的
+        self.qa = ConversationalRetrievalChain.from_llm(
+            llm=OpenAI(temperature=0, max_tokens=300),
+            retriever=retriever,
+            memory=self.memory,
+            return_source_documents=True
+        )
 
     def add(self, location):
-        print(f"Loading from dir: {location} ...")
-
         file_extensions = ('.docx', '.doc', '.pdf', '.pptx')
         documents = []
         try:
@@ -150,4 +164,5 @@ class Base:
         self.base_db.delete()
 
     def query(self, question):
-        return self.qa({"query": question})
+        return self.qa({"question": question})
+
