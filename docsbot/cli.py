@@ -9,11 +9,15 @@ import datetime
 from prettytable import PrettyTable
 import nltk
 
+
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+
 from docsbot.base import Base
 from docsbot.config import CONFIG
+from docsbot.version import APP_VERSION
+
 
 if hasattr(CONFIG.env, "HTTP_PROXY_FOR_GLOBAL_ACCESS"):
     nltk.set_proxy(CONFIG.env.HTTP_PROXY_FOR_GLOBAL_ACCESS)
@@ -131,10 +135,8 @@ def main():
     parser = argparse.ArgumentParser(prog='chatbase')
     subparsers = parser.add_subparsers(dest='command')
 
-    with open(os.path.join(os.path.dirname(__file__), "version")) as f:
-        app_version = f.read()
     # Add version argument
-    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {app_version}')
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {APP_VERSION}')
 
     parser_addbase = subparsers.add_parser('addbase')
     parser_addbase.add_argument('path', type=str)
