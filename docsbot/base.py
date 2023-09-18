@@ -12,12 +12,11 @@ from langchain.memory import ConversationBufferMemory
 
 from langchain import OpenAI
 
-sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-from config import CONFIG
+
+from docsbot.config import CONFIG
 
 COLLECTION_NAME = "docsbot_default"
-
 
 class BaseDB:
     def add_documents(self, documents):

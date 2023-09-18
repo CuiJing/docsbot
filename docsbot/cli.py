@@ -7,13 +7,14 @@ import random
 import string
 import datetime
 from prettytable import PrettyTable
+import nltk
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from base import Base
-from config import CONFIG
+from docsbot.base import Base
+from docsbot.config import CONFIG
 
-import nltk
 if hasattr(CONFIG.env, "HTTP_PROXY_FOR_GLOBAL_ACCESS"):
     nltk.set_proxy(CONFIG.env.HTTP_PROXY_FOR_GLOBAL_ACCESS)
 elif hasattr(CONFIG.env, "OPENAI_PROXY"):
@@ -109,7 +110,7 @@ class ChatBase:
         print(client.get_collections())
         print(os.environ)
 
-    def query(self, base_id, thread_id=None, debug=False):
+    def query(self, base_id, debug=False):
         if debug:
             import langchain
             langchain.debug = True
@@ -130,6 +131,11 @@ def main():
     parser = argparse.ArgumentParser(prog='chatbase')
     subparsers = parser.add_subparsers(dest='command')
 
+    with open(os.path.join(os.path.dirname(__file__), "version")) as f:
+        app_version = f.read()
+    # Add version argument
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {app_version}')
+
     parser_addbase = subparsers.add_parser('addbase')
     parser_addbase.add_argument('path', type=str)
 
@@ -147,7 +153,7 @@ def main():
     parser_query = subparsers.add_parser('query')
     parser_query.add_argument('base_id', type=str)
     parser_query.add_argument('--debug', action='store_true')
-    parser_query.add_argument('--thread_id', type=str)
+    # parser_query.add_argument('--thread_id', type=str)
 
 
     args = parser.parse_args()
@@ -162,7 +168,7 @@ def main():
         CONFIG.print()
     elif args.command == 'query':
         chat_base.query(args.base_id,
-                        thread_id=args.thread_id,
+                        # thread_id=args.thread_id,
                         debug=args.debug
                         )
     else:

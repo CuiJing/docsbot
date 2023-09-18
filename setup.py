@@ -3,10 +3,12 @@ from setuptools import setup, find_packages
 with open("README.md") as f:
     long_description = f.read()
 
+with open("docsbot/version") as f:
+    app_version = f.read()
 
 setup(
     name='docsbot',
-    version='0.1.13',
+    version=app_version,
     description='A simple chat bot for querying information from your local private documents.',
     url='https://github.com/CuiJing/docsbot',
     author='Jeff',
